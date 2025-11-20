@@ -1,0 +1,13 @@
+Time,Ticker,EventType
+2,GOOG,Good
+4,META,Bad
+5,MSFT,Bad
+9,AMZN,Good
+14,TSLA,Good
+16,AAPL,Good
+18,GOOG,Bad
+21,AVGO,Good
+24,META,Bad
+25,NVDA,Bad
+28,AMZN,Bad
+30,MSFT,Good
