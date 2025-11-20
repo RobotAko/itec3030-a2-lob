@@ -1,0 +1,9 @@
+Title,TraderType,AcountType, InitCashBalance ,TradingStyle
+Bank of Toronto,Institutional,Pro,10000000000,Conservative
+Bank of North York,Institutional,Pro,5000000000,Conservative
+Government Workers Pension Fund,Institutional,Pro,4000000000,Conservative
+ABC Bank Fund,Institutional,Pro,2500000000,Aggressive
+John Smith,Retail,Basic,500000,Aggressive
+Alice Smith,Retail,Basic,10000000,Conservative
+Smith Fund,Retail,Pro,100000000,Conservative
+Three little pigs investments,Retail,Pro,1000000000,Aggressive
