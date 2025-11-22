@@ -15,5 +15,4 @@ public abstract class AbstractTradingAgentFactory {
 	 * @return A  {@linkplain TradingAgent} object constructed according to specified parameters.
 	 */
 	public abstract TradingAgent createAgent(String type, String style, Trader t, StockExchange e, NewsBoard n); 
-
 }

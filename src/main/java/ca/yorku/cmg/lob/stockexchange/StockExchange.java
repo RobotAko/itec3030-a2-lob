@@ -6,23 +6,21 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import ca.yorku.cmg.lob.stockexchange.events.NewsBoard;
-import ca.yorku.cmg.lob.stockexchange.tradingagent.TradingAgent;
-import ca.yorku.cmg.lob.stockexchange.tradingagent.AbstractTradingAgentFactory;
-import ca.yorku.cmg.lob.stockexchange.tradingagent.SimpleTradingAgentFactory;
 
-import ca.yorku.cmg.lob.trader.Trader;
-import ca.yorku.cmg.lob.trader.TraderInstitutional;
-import ca.yorku.cmg.lob.trader.TraderRetail;
-import ca.yorku.cmg.lob.tradestandards.IOrder;
 import ca.yorku.cmg.lob.orderbook.Ask;
 import ca.yorku.cmg.lob.orderbook.Bid;
 import ca.yorku.cmg.lob.orderbook.Orderbook;
 import ca.yorku.cmg.lob.orderbook.Trade;
 import ca.yorku.cmg.lob.security.Security;
 import ca.yorku.cmg.lob.security.SecurityList;
-
-
+import ca.yorku.cmg.lob.stockexchange.events.NewsBoard;
+import ca.yorku.cmg.lob.stockexchange.tradingagent.TradingAgent;
+import ca.yorku.cmg.lob.stockexchange.tradingagent.TradingAgentAggressive;
+import ca.yorku.cmg.lob.stockexchange.tradingagent.TradingAgentConservative;
+import ca.yorku.cmg.lob.trader.Trader;
+import ca.yorku.cmg.lob.trader.TraderInstitutional;
+import ca.yorku.cmg.lob.trader.TraderRetail;
+import ca.yorku.cmg.lob.tradestandards.IOrder;
 
 /**
  * Represents a stock exchange that manages securities, accounts, orders, and trades.
@@ -38,9 +36,8 @@ public class StockExchange {
 		private ArrayList<TradingAgent> traders = new ArrayList<TradingAgent>();
 		
 		private ArrayList<IOrder> log = new ArrayList<>();
-	private AbstractTradingAgentFactory tradingAgentFactory = new SimpleTradingAgentFactory();
-
-	private Map<String, Integer> prices = new HashMap<String, Integer>();
+		
+		private Map<String, Integer> prices = new HashMap<String, Integer>();
 					
 		long totalFees = 0;
 
@@ -123,8 +120,7 @@ public class StockExchange {
 
 		}
 
-
-
+		
 	    /**
 	     * Reads the security list from a file and populates the exchange.
 	     * 
@@ -159,64 +155,50 @@ public class StockExchange {
 	     * 
 	     * @param path the path to the accounts list file
 	     */
-	/**
-	 * Reads the accounts list from a file and populates the exchange.
-	 *
-	 * @param path the path to the accounts list file
-	 */
-	public void readAccountsListFromFile(String path) {
-		try (BufferedReader br = new BufferedReader(new FileReader(path))) {
-			String line;
-			boolean isFirstLine = true; // Skip header
+		public void readAccountsListFromFile(String path) {
+		    try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+	            String line;
+	            boolean isFirstLine = true; // Skip header
 
-			while ((line = br.readLine()) != null) {
-				if (isFirstLine) {
-					isFirstLine = false;
-					continue;
-				}
-				String[] parts = line.split(",", -1); // Split by comma
-				if (parts.length >= 5) {
-					String traderTitle = parts[0].trim();
-					String traderType = parts[1].trim();  // "Retail" or "Institutional"
-					String accType = parts[2].trim();     // "Basic" / "Pro"
-					long initBalance = Long.parseLong(parts[3].trim());
-					String tradingStyle = parts[4].trim(); // "Conservative" / "Aggressive"
-
-					// Create Trader
-					Trader t;
-					if (traderType.equals("Retail")) {
-						t = new TraderRetail(traderTitle);
-					} else {
-						t = new TraderInstitutional(traderTitle);
-					}
-
-					// Create account
-					if (accType.equals("Basic")) {
-						accounts.addAccount(new AccountBasic(t, initBalance));
-					} else {
-						accounts.addAccount(new AccountPro(t, initBalance));
-					}
-
-					// Create TradingAgent via Abstract Factory (NEW)
-					TradingAgent agent = tradingAgentFactory.createAgent(traderType,  // "Retail" or "Institutional"
-									tradingStyle, // "Aggressive" or "Conservative"
-									t,
-									this,
-									newsDesk);
-
-					traders.add(agent);
-
-				} else {
-					System.err.println("Skipping malformed line (too few attributes): " + line);
-				}
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
+	            while ((line = br.readLine()) != null) {
+	                if (isFirstLine) {
+	                    isFirstLine = false;
+	                    continue;
+	                }
+	                String[] parts = line.split(",", -1); // Split by comma
+	                if (parts.length >= 5) {
+	                    String traderTitle = parts[0].trim();
+	                    String traderType = parts[1].trim();
+	                    String accType = parts[2].trim();
+	                    long initBalance = Long.parseLong(parts[3].trim());
+	                    String tradingStyle = parts[4].trim();
+	                	Trader t;
+	                    if (traderType.equals("Retail")) {
+	                    	t = new TraderRetail(traderTitle);
+	                    } else {
+	                    	t = new TraderInstitutional(traderTitle);
+	                    }
+	                    if (accType.equals("Basic")) {
+	                    	accounts.addAccount(new AccountBasic(t,initBalance));
+	                    } else {
+	                    	accounts.addAccount(new AccountPro(t,initBalance));
+	                    }
+	                    if (tradingStyle.equals("Conservative")) {
+	                    	traders.add(new TradingAgentConservative(t,this,newsDesk));
+	                    } else {
+	                    	traders.add(new TradingAgentAggressive(t,this,newsDesk));
+	                    }
+	                    
+	                } else {
+	                    System.err.println("Skipping malformed line (two few attributes): " + line);
+	                }
+	            }
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
 		}
-	}
-
-
-	/**
+		
+	    /**
 	     * Reads initial positions from a file and updates account holdings.
 	     * 
 	     * @param path the path to the initial positions file
@@ -385,6 +367,7 @@ public class StockExchange {
 	    /**
 	     * Retrieves the list of accounts managed by the exchange.
 	     * 
+	     * @return the {@linkplain ca.yorku.cmg.lob.exchange.AccountsList} object
 	     */
 		public AccountsList getAccounts() {
 			return accounts;
